@@ -237,4 +237,4 @@ VALUES   (
 -- Update all records in inventory table to have /vehicles after /images in inv_image column
 UPDATE inventory
 SET inv_image = REPLACE(inv_image, '/images', '/images/vehicles');
-
+SET inv_thumbnail = REPLACE(inv_thumbnail, '/images', '/images/vehicles');
