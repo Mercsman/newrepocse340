@@ -1,57 +1,84 @@
-// Needed Resources
+// Needed Resources 
 const express = require("express")
-const router = new express.Router()
-const utilities = require("../utilities")
+const router = new express.Router() 
 const accountController = require("../controllers/accountController")
-const regValidate = require("../utilities/accountValidation")
+const utilities = require("../utilities/")
+const regValidate = require('../utilities/account-validation')
 
-// Route for login 
-router.get("/login", utilities.handleErrors(accountController.buildLogin))
+// Route to login view
+router.get("/login", utilities.handleErrors(accountController.buildLogin));
 
-//Route for register
-router.get("/register", utilities.handleErrors(accountController.buildRegister))
+// Route to registration view
+router.get("/registration", utilities.handleErrors(accountController.buildRegister));
 
-//Route for management account
-// router.get("/", utilities.checkLogin, utilities.handleErrors(accountController.buildManagement))
+// Route to account view
+router.get("/", 
+utilities.checkLogin, 
+utilities.handleErrors(accountController.buildAccount))
 
-//Route for logout process
-// router.get("/logout", utilities.checkLogin, utilities.handleErrors(accountController.logoutProcess))
+// Route to update account view
+router.get("/update/:account_id", 
+utilities.checkLogin,
+utilities.handleErrors(accountController.buildUpdateAccount));
 
-// Route to Update Account view
-// router.get("/update/:accountId", utilities.checkLogin, utilities.handleErrors(accountController.updateAccountView))
-
-
-// Process the registration data
-router.post(
-    "/register",
-    regValidate.registrationRules(),
-    regValidate.checkRegData,
-    utilities.handleErrors(accountController.registerAccount)
-)
+// Route to register new account
+router.post("/register",
+regValidate.registrationRules(),
+regValidate.checkRegData,
+utilities.handleErrors(accountController.registerAccount))
 
 // Process the login attempt
 router.post(
-    "/login",
-    regValidate.loginRules(),
-    regValidate.checkLoginData,
-    utilities.handleErrors(accountController.accountLogin)
+  "/login",
+  regValidate.loginRules(),
+  regValidate.checkLoginData,
+  utilities.handleErrors(accountController.accountLogin)
 )
 
-// Process the update
-// router.post(
-// "/",
-// regValidate.updateRules(),
-// regValidate.checkUpdateData,
-// utilities.handleErrors(accountController.updateAccount)
-// )
+// Process update account info
+router.post(
+  "/updateinfo",
+  utilities.checkLogin,
+  regValidate.updateAccountRules(),
+  regValidate.checkAccountData,
+  utilities.handleErrors(accountController.updateAccount)
+)
 
-// router.post(
-//     "/update/updatePassword",
-//     regValidate.upPassRules(),
-//     regValidate.checkPassData,
-//     utilities.handleErrors(accountController.processUpPassword)
-// )
+// Process update password
+router.post(
+  "/updatepw",
+  utilities.checkLogin,
+  regValidate.updatePasswordRules(),
+  regValidate.checkPasswordData,
+  utilities.handleErrors(accountController.updatePassword)
+)
 
+// Logout the user
+router.get(
+  "/logout",
+  utilities.handleErrors(accountController.logoutUser)
+)
+
+// User reviews page
+router.get(
+  "/review/",
+  utilities.handleErrors(accountController.buildReviews)
+)
+// New user review form
+router.get(
+  "/review/new",
+  utilities.checkLogin,
+  utilities.handleErrors(accountController.buildNewReview)
+)
+
+// post new user review
+router.post(
+  "/review/new",
+  utilities.checkLogin,
+  regValidate.newReviewRules(),
+  regValidate.checkReviewData,
+  utilities.handleErrors(accountController.postReview)
+)
 
 
 module.exports = router;

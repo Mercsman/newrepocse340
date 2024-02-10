@@ -8,25 +8,20 @@
 const express = require("express")
 const env = require("dotenv").config()
 const app = express()
-const static = require("./routes/static")
 const expressLayouts = require("express-ejs-layouts")
 const baseController = require("./controllers/baseController")
-const inventoryRoute = require("./routes/inventoryRoute")
+const inventoryRoute = require("./routes/inventoryRoute.js")
+const errorRoute = require("./routes/error.js")
 const utilities = require("./utilities/")
 const session = require("express-session")
 const pool = require('./database/')
-const accountRoute = require("./routes/accountRoute")
-
-/* ***********************
- * View Engine and Templates
- *************************/
-app.set("view engine", "ejs")
-app.use(expressLayouts)
-app.set("layout", "./layouts/layout") // not at views root
+const accountRoute = require("./routes/accountRoute.js")
+const bodyParser = require("body-parser")
+const cookieParser = require("cookie-parser")
 
 /* ***********************
  * Middleware
- *************************/
+ * ************************/
 app.use(session({
   store: new (require('connect-pg-simple')(session))({
     createTableIfMissing: true,
@@ -45,23 +40,65 @@ app.use(function(req, res, next){
   next()
 })
 
+// Body Parser
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
+
+// Cookie Parser
+app.use(cookieParser())
+
+// JWT Token
+app.use(utilities.checkJWTToken)
+
+
+/* ***********************
+ * View Engine and Templates
+ *************************/
+app.set("view engine", "ejs")
+app.use(expressLayouts)
+app.set("layout", "./layouts/layout") // not at views root
 
 /* ***********************
  * Routes
  *************************/
-app.use(static)
-// Index route
+app.use(require("./routes/static"))
+
+//Index route
 app.get("/", utilities.handleErrors(baseController.buildHome))
 // Inventory routes
 app.use("/inv", inventoryRoute)
-// Account routes
-// app.listen("/account", require("./routes/accountRoute"))
+// Account route
+app.use("/account", accountRoute)
+// Intentional 500 error
+app.use("/error", errorRoute)
+
 // File Not Found Route - must be last route in list
 app.use(async (req, res, next) => {
-  next({status: 404, message: 'Sorry we appear to have lost that page.'})
+  next({status: 404, message: 'Sorry, we appear to have lost that page, or it never existed.'})
 })
 
-app.use("/account", accountRoute)
+/* ***********************
+* Express Error Handler
+* Place after all other middleware
+*************************/
+app.use(async (err, req, res, next) => {
+  let nav = await utilities.getNav()
+  console.error(`Error at: "${req.originalUrl}": ${err.message}`)
+  //console.log(err)
+  let message
+  if(err.status == 404 || err.status == 500){ 
+    message = err.message
+  } else if (!err.status) {
+    err.status = 404,
+    message = 'Sorry, we appear to have lost that page, or it never existed.'
+  } else {message = 'Looks like you took a wrong turn!'}
+  //console.log(message)
+  res.render("errors/error", {
+    title: err.status || 'Server Error',
+    message,
+    nav
+  })
+})
 
 /* ***********************
  * Local Server Information
@@ -69,21 +106,6 @@ app.use("/account", accountRoute)
  *************************/
 const port = process.env.PORT
 const host = process.env.HOST
-
-/* ------------------------
-* Express Error Handler
-* Place after all other middleware
------------------------ */
-app.use(async (err, req, res, next) => {
-  let nav = await utilities.getNav()
-  console.error(`Error at: "${req.originalUrl}": ${err.message}`)
-  if(err.status == 404){ message = err.message} else {message = 'Oh no! There was a crash. Maybe try a different route?'}
-  res.render("errors/error", {
-    title: err.status || 'Server Error',
-    message,
-    nav
-  })
-})
 
 /* ***********************
  * Log statement to confirm server operation
