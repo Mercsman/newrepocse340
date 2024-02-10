@@ -16,7 +16,7 @@ const utilities = require("./utilities/")
 const session = require("express-session")
 const pool = require('./database/')
 const accountRoute = require("./routes/accountRoute.js")
-const bodyParser = require("body-parser")
+// const bodyParser = require("body-parser")
 const cookieParser = require("cookie-parser")
 
 /* ***********************
@@ -41,8 +41,8 @@ app.use(function(req, res, next){
 })
 
 // Body Parser
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
+// app.use(bodyParser.json())
+// app.use(bodyParser.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 
 // Cookie Parser
 app.use(cookieParser())
