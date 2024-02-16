@@ -41,7 +41,7 @@ async function getAccountByEmail (account_email) {
 }
 
 /* *****************************
-* Return account data using acount id
+* Return account data using account id
 * ***************************** */
 async function getAccountById (account_id) {
   try {
